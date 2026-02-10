@@ -1,0 +1,213 @@
+\documentclass[a4paper]{article} 
+\input{latex/head}
+\begin{document}
+
+%-------------------------------
+%	TITLE SECTION
+%-------------------------------
+
+\fancyhead[C]{}
+\hrule \medskip % Upper rule
+\begin{minipage}{0.295\textwidth} 
+\raggedright
+\footnotesize
+Dylan Huber 
+\end{minipage}
+\begin{minipage}{0.4\textwidth} 
+\centering 
+\large 
+PCR Lab Write-up\\ 
+\normalsize 
+02-261\\ 
+\end{minipage}
+\begin{minipage}{0.295\textwidth} 
+\raggedleft
+\today\hfill\\
+\end{minipage}
+\medskip\hrule 
+\bigskip
+
+%-------------------------------
+%	CONTENTS
+%-------------------------------
+
+\section{Primer Melting Point Prediction}
+\subsection{Approach}
+
+My approach for finding melting point features was to search for different properties of the primer that might affect the melting point of the primer. The properties I settled on was:
+
+\begin{enumerate}
+    \item The length of the primer
+    \item The count of each nucleotide
+    \item The first nucleotide
+    \item The last nucleotide
+\end{enumerate}
+
+\subsection{Findings}
+
+This gave me a $.96$ $R^2$ value, meaning that it worked quite well. The strongest indicator that I found with later testing was the length, but the count of each nucleotide mattered too. Lastly, including the first and last nucleotide of the primer increased the $R^2$ from $.94$ to $.96$.
+
+\newpage
+
+\section{Predict PCR Products}
+
+\subsection{Approach}
+
+My approach to this was to sequentially ensure each constraint was satisfied and then run the sequence alignment script to find whether binding would succeed or not. The following was the process:
+
+\begin{enumerate}
+    \item Check length of primers ($18 \le \text{length} \le 35$)
+    \item Check melting points ($58 \le \text{melting point} \le 62$)
+    \item Check alignment match ($.8 \le \text{alignment score}$)
+\end{enumerate}
+
+If all of these requirements are satisfied we can find the predicted product. Note that we ensure the product length is less than $1000$ bases downstream.
+
+\subsection{Findings}
+
+I found that this worked as intended. The test cases succeeded and my code returned the same results and my peers.
+
+\newpage
+
+\section{Generate Primers for PCR}
+
+\subsection{Approach}
+
+To find primers that worked for multiple rRNA strands, I applied a brute force approach. That is, I attempted to try every possible valid primer pair. However, there are quite a few of these, so I lowered the search space in a few ways:
+
+\begin{enumerate}
+    \item Only search through perfect matches on one of the strands
+    \item Reject primers immediately if their melting point is not in range
+    \item If a match is found in the strand, try all other strands to look for pairings or triples
+\end{enumerate}
+
+The first point greatly decreases the number of strings we try, but it also cuts out some of the strings that might be good matches. \\
+
+The second point helps avoid doing extra computation when the first primer chosen would never work. \\
+
+The last point gives us a higher probability to find a three or more way match since we are search over more extra strands, instead of just an arbitrary three strands. \\
+
+\subsection{Findings}
+
+This procedure worked well, but was quite slow. I found many primers that worked, but I had to run the program for multiple hours. To fix this, I could work on parallelizing this to make my computer use every core. Additionally, I could run this via cloud computing to speed up the process as well.
+
+\newpage
+
+\section{Generate Primers for PCR Differentiation}
+
+\subsection{Approach}
+
+The approach for this section is identical to the previous one, but this time we will filter the results for primers that create different lengths for each or some of the strands. 
+
+\subsection{Findings}
+
+Finding a primer pair that created three different lengths for three different strands was extremely difficult, since they seem quite rare. Instead, our team found two pairs that would differentiate between many of the strands by using the combination of the products (see section 5). Running the code for this section was also slow, so we did not search the entire space.
+
+\newpage
+
+\section{Primer Binding Locations and Experimental Design}
+
+\subsection{Primer Binding Locations}
+\begin{figure*}[h!]
+    \centering
+    \begin{subfigure}[c]{0.5\textwidth}
+        \centering
+        \includegraphics[height=2.7in]{Figure_1.png}
+    \end{subfigure}%
+    ~
+    \begin{subfigure}[c]{0.5\textwidth}
+        \centering
+        \includegraphics[height=2.7in]{Figure_2.png}
+    \end{subfigure}
+    \caption{Binding locations of primer pairs}
+\end{figure*}
+
+We selected two sets of primers, with expected binding locations shown above.
+
+\subsection{Experimental Design}
+
+First, to test if the primers are working as intended, I would use each of the primers on the pure bacteria DNA to ensure the products have the correct lengths. The primers were chosen such that the first primer pair is should be guaranteed to make a product. If it does not, we know that something is wrong. I would also test the second primer pair on the DNA to ensure that the correct product is made for A2, A5, A6, and A7, and that no product is made for A1 and A3. \\
+
+Now that we have comfirmed the functionality of the primer, we will observe the relationship between the products and their lengths:
+\begin{table}[H]
+    \centering
+    \begin{tabular}{|c|c|c|}
+        \hline
+        Length (bases) & Possible DNA Source & Primer Source \\
+        \hline
+        $0$ & A3 or A1 & 2 \\
+        \hline
+        $\approx 50$ & A2 or A7 & 2 \\
+        \hline
+        $\approx 140$ & A2 or A3 & 1 \\
+        \hline
+        $\approx 740$ & A5 or A6 & 2 \\
+        \hline
+        $\approx 980$ & A1 or A5 or A6 or A7 & 1 \\
+        \hline
+    \end{tabular}
+    \caption{Length vs possible DNA and primer source}
+\end{table}
+
+With this in mind, we should run PCR on our unknown sample. We can use both primer pairs at once, or we could run the PCR separately. This will not matter since the outputs are separable by the product lengths. First, lets assume we only have one of the known DNA in the sample:
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{|c|c|}
+        \hline
+        DNA Source & Expected Products Lengths \\
+        \hline
+        A1 & 980 \\
+        \hline
+        A2 & 50 and 140 \\
+        \hline
+        A3 & 140 \\
+        \hline
+        A5,A6 & 740 and 980 \\
+        \hline
+        A7 & 50 and 980 \\
+        \hline
+    \end{tabular}
+    \caption{DNA source vs expected products}
+\end{table}
+
+Note that A5 and A6 are inseparable in this experiment, but all other DNA sources have a unique set of product lengths. If we find any of these sets of product lengths, we can conclude that the corresponding DNA is in the sample. \\
+
+If we do not recieve a set of lengths similar to above or believe multiple types of the known DNA are present in our sample, we can refer to the complete table below to see what combinations of DNA might be possible. Product lengths from primer 1 and primer 2 have been separated, but they don't necessarily have to be separated when running the experiment.
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{|c|c|c|}
+        \hline
+        Lengths from primer 1 & Lengths from primer 2 & Possible source sets \\
+        \hline
+        140 &  & A3\\
+        \hline
+        140 & 50 & A2 and (possibly A3)\\
+        \hline
+        980 &  & A1\\
+        \hline
+        980 & 50 & (possibly A1) and A7\\
+        \hline
+        980 & 740 & (possibly A1) and (A5 or A6)\\
+        \hline
+        980 & 50 and 740 & (possibly A1) and (A5 or A6) and A7\\
+        \hline
+        140 and 980 & & A1 and A3 \\
+        \hline
+        140 and 980 & 50 & (possibly A1) and A2 and (possibly A3) and A7 \\
+        \hline
+        140 and 980 & 740 & (possibly A1) and A3 and (A5 or A6) \\
+        \hline
+        140 and 980 & 50 and 740 & (ALO: A1, A5, A6, A7) and (ALO: A2, A3)\\
+         &  & and (ALO: A2, A7) and (ALO: A5, A6)\\
+        \hline
+    \end{tabular}
+    \caption{Lengths vs possible DNA source, ALO stands for at least one of the DNA following it. All combinations that are not mentioned are impossible.}
+\end{table}
+
+In summary, our experiment is to run PCR on our control DNA sequences to ensure the primers work correctly (every primer pair, every DNA sequence). Next run PCR with both primers on the unknown DNA. Finally, measure the lengths of all PCR reactions and consult the tables above for conclusions.
+
+%------------------------------------------------
+
+\end{document}
