@@ -27,16 +27,18 @@ mask_generator = SamAutomaticMaskGenerator(
 )
 
 # 3. Smart Pre-processing (The "Secret Sauce")
-image = cv2.imread('images/backlit/img1.jpg')
+image = cv2.imread('images/backlit/img4.jpg')
 
 # Resize if the image is massive (e.g., > 2000px wide) to speed up inference
 # SAM works best around 1024-1500px
 height, width = image.shape[:2]
-max_dim = 1500
+max_dim = 1000
 if max(height, width) > max_dim:
     scale = max_dim / max(height, width)
     image = cv2.resize(image, None, fx=scale, fy=scale)
     print(f"Resized image to {image.shape[:2]} for speed.")
+
+
 
 # Apply CLAHE (Contrast Limited Adaptive Histogram Equalization)
 # This makes faint colonies dark and distinct, so SAM detects them easier
