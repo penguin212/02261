@@ -62,7 +62,7 @@ The SAM model was difficult to constrain to a certain area of the image, so even
 \begin{figure}[H]
     \centering
     \includegraphics[width=1\linewidth]{quantity.png}
-    \caption{This bar graph shows the difference of quantity of colonies detected by the different algorithms for each image. The OpenCV method is shown in blue, the SAM model is shown in orange, and the ground truth is shown in green.}
+    \caption{This bar graph shows the difference of quantity of colonies detected by the different algorithms for each image. The tests are performed on the backlit background. The OpenCV method is shown in blue, the SAM model is shown in orange, and the ground truth is shown in green.}
 \end{figure}
 
 \subsection{Quantity Conclusions}
@@ -94,6 +94,26 @@ As mentioned before, the SAM model incorrectly detects the corners of the image 
 
 \section{Background Comparison}
 
+We compare the backgrounds via the count of detected colonies.
 
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\linewidth]{quantity_white.png}
+    \caption{This figure shows the difference in quantity of colonies detected between the different segmentation models and the ground truth. The tests are performed on the white background images. The OpenCV model is shown in blue, the SAM algorithm is shown in orange, and the ground truth is shown in green. }
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\linewidth]{quantity_black.png}
+    \caption{This figure shows the difference in distributions of colony areas between the different segmentation models and the ground truth. The tests are performed on the black background images. The OpenCV model is shown in blue, the SAM algorithm is shown in orange, and the ground truth is shown in green. }
+\end{figure}
+
+\subsection{Background Conclusions}
+
+The white background significantly messes up the SAM algorithm, especially on image 4. The black background messes up the OpenCV algorithm even more, with image 2 having an incredible overestimate of the number of colonies. These errors make sense, since both models were tuned on the backlit background images, so correct outputs are not expected on the other background types. However, here is also were the strength of the SAM algorithm is shown. This model maintains fairly accurate values in both new environments (barring the one outlier), showing its robustness.
+
+\subsection{Background Errors}
+
+This section is riddled with errors due to the models being tuned on the backlit images, as stated earlier. Additionally, all the errors from previous sections still apply including the SAM detecting the corners of images and nested colonies.
 
 \end{document}

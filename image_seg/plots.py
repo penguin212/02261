@@ -85,7 +85,7 @@ plt.xticks([i * group_spacing for i in range(1, len(images) + 1)],
 
 # Use a log scale because areas can vary massively (e.g. 10 pixels vs 50,000 pixels)
 plt.yscale('log')
-plt.ylabel('Area (Pixels) - Log Scale', fontsize=12)
+plt.ylabel('Colony Area (Pixels) - Log Scale', fontsize=12)
 plt.xlabel('Source Image', fontsize=12)
 plt.title('Comparison of Segmentation Methods by Area Distribution', fontsize=14)
 

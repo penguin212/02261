@@ -55,7 +55,7 @@ for i, method in enumerate(methods):
 # 5. Formatting and Labels
 ax.set_ylabel('Number of Colonies', fontsize=12)
 ax.set_xlabel('Source Image', fontsize=12)
-ax.set_title('Total detections for White Background', fontsize=14)
+ax.set_title('Total detections for Black Background', fontsize=14)
 
 # Set the x-ticks to the center of the groups
 ax.set_xticks(x)
