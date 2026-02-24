@@ -3,6 +3,7 @@ import numpy as np
 import torch
 from segment_anything import sam_model_registry, SamAutomaticMaskGenerator
 import matplotlib.pyplot as plt
+import csv
 
 # 1. Setup Model (Use 'vit_b' for speed)
 sam_checkpoint = "sam_vit_b_01ec64.pth"
@@ -27,30 +28,62 @@ mask_generator = SamAutomaticMaskGenerator(
 )
 
 # 3. Smart Pre-processing (The "Secret Sauce")
-image = cv2.imread('images/backlit/img4.jpg')
+image = cv2.imread('images/backlit/img1.jpg')
 
 # Resize if the image is massive (e.g., > 2000px wide) to speed up inference
 # SAM works best around 1024-1500px
-height, width = image.shape[:2]
-max_dim = 1000
-if max(height, width) > max_dim:
-    scale = max_dim / max(height, width)
-    image = cv2.resize(image, None, fx=scale, fy=scale)
-    print(f"Resized image to {image.shape[:2]} for speed.")
+
+
+output = image.copy()
+gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
 
 
-# Apply CLAHE (Contrast Limited Adaptive Histogram Equalization)
-# This makes faint colonies dark and distinct, so SAM detects them easier
-image_lab = cv2.cvtColor(image, cv2.COLOR_BGR2LAB)
-l, a, b = cv2.split(image_lab)
-clahe = cv2.createCLAHE(clipLimit=3.0, tileGridSize=(8,8))
-cl = clahe.apply(l)
-limg = cv2.merge((cl,a,b))
-enhanced_image = cv2.cvtColor(limg, cv2.COLOR_LAB2RGB)
+# 2. Light Blur (Crucial for adaptive thresholding to ignore pixel-level noise)
+blurred = cv2.medianBlur(gray, 5)
+
+# 3. Detect the dish to create a mask (to avoid detecting shadows/rims)
+mask = np.zeros_like(gray)
+circles = cv2.HoughCircles(blurred, cv2.HOUGH_GRADIENT, 1.2, 100, 
+                           param1=50, param2=30, minRadius=400, maxRadius=600)
+
+
+max_x = 0
+min_x = 0
+max_y = 0
+min_y = 0
+if circles is not None:
+    circles = np.round(circles[0, :]).astype("int")
+    for (x, y, r) in circles[:1]:
+        cv2.circle(mask, (x, y), r, 1, -1) # Slightly smaller to avoid edge
+        max_x = x + r
+        min_x = x - r
+        max_y = y + r
+        min_y = y - r
+        
+
+
+
+image = image * cv2.cvtColor(mask, cv2.COLOR_GRAY2BGR)
+
+# cv2.imshow("img", image)
+# cv2.waitKey(0)
+
+image = image[min_y:(max_y + 1), min_x:(max_x + 1)]
+
+
+
+# height, width = image.shape[:2]
+# max_dim = 1000
+# if max(height, width) > max_dim:
+#     scale = max_dim / max(height, width)
+#     image = cv2.resize(image, None, fx=scale, fy=scale)
+print(f"Resized image to {image.shape[:2]} for speed.")
+
+
 
 print("Generating masks (this might still take 30-60s on CPU)...")
-masks = mask_generator.generate(enhanced_image)
+masks = mask_generator.generate(image)
 
 # 4. Filter Results (Ignore the dish itself)
 filtered_masks = []
@@ -91,7 +124,36 @@ def show_anns(anns):
         ax.imshow(np.dstack((img, m * 0.45)))
 
 plt.figure(figsize=(10,10))
-plt.imshow(enhanced_image)
+plt.imshow(image)
 show_anns(filtered_masks)
 plt.axis('off')
 plt.show()
+
+csv_filename = "colony_measurements.csv"
+
+# Prepare the header and data list
+header = ['Colony_ID', 'Center_X', 'Center_Y', 'Area_Pixels']
+rows = []
+
+for i, ann in enumerate(filtered_masks):
+    # Calculate the centroid (center) of the mask
+    # This helps in identifying which row belongs to which colony on the image
+    m_y, m_x = np.where(ann['segmentation'])
+    if len(m_x) > 0:
+        cx = int(np.mean(m_x))
+        cy = int(np.mean(m_y))
+    else:
+        cx, cy = 0, 0
+
+    # SAM provides the area in pixels automatically
+    pixel_area = ann['area']
+    
+    rows.append([i + 1, cx, cy, pixel_area])
+
+# Write to file
+with open(csv_filename, mode='w', newline='') as file:
+    writer = csv.writer(file)
+    writer.writerow(header)
+    writer.writerows(rows)
+
+print(f"Successfully exported {len(rows)} colony measurements to {csv_filename}.")
