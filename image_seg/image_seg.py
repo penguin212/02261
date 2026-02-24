@@ -3,7 +3,7 @@ import numpy as np
 import csv
 
 # 1. Load the image
-image = cv2.imread('images/backlit/img1.jpg')
+image = cv2.imread('images/white_bg/img2.jpg')
 output = image.copy()
 gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 

@@ -6,7 +6,7 @@ import os
 # 1. Define the file structure patterns and methods
 # The {} will be replaced by the image number (1, 2, 3, 4)
 file_patterns = {
-    'OpenCV Adaptive': 'colony_data_opencv{}.csv',
+    'OpenCV Contours': 'colony_data_opencv{}.csv',
     'SAM Model': 'colony_measurements{}.csv',
     'Ground Truth': 'red_shape_areas{}.csv'
 }

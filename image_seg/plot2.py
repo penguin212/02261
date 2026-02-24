@@ -5,8 +5,8 @@ import os
 
 # 1. Define patterns and setup variables
 file_patterns = {
-    'OpenCV Adaptive': 'colony_data_opencv{}.csv',
-    'SAM Model': 'colony_measurements{}.csv',
+    'OpenCV Contours': 'colony_data_opencv{}_black.csv',
+    'SAM Model': 'colony_measurements{}_black.csv',
     'Ground Truth': 'red_shape_areas{}.csv'
 }
 
@@ -53,9 +53,9 @@ for i, method in enumerate(methods):
     ax.bar_label(rects, padding=3, fontsize=10)
 
 # 5. Formatting and Labels
-ax.set_ylabel('Number of Detections (Colonies/Shapes)', fontsize=12)
+ax.set_ylabel('Number of Colonies', fontsize=12)
 ax.set_xlabel('Source Image', fontsize=12)
-ax.set_title('Total Detections per Image by Segmentation Method', fontsize=14)
+ax.set_title('Total detections for White Background', fontsize=14)
 
 # Set the x-ticks to the center of the groups
 ax.set_xticks(x)

@@ -1,0 +1,99 @@
+\documentclass[a4paper]{article} 
+\input{latex/head}
+\begin{document}
+
+%-------------------------------
+%	TITLE SECTION
+%-------------------------------
+
+\fancyhead[C]{}
+\hrule \medskip % Upper rule
+\begin{minipage}{0.295\textwidth} 
+\raggedright
+\footnotesize
+Dylan Huber 
+\end{minipage}
+\begin{minipage}{0.4\textwidth} 
+\centering 
+\large 
+Image Segmentation Lab Write-up\\ 
+\normalsize 
+02-261\\ 
+\end{minipage}
+\begin{minipage}{0.295\textwidth} 
+\raggedleft
+\today\hfill\\
+\end{minipage}
+\medskip\hrule 
+\bigskip
+
+%-------------------------------
+%	CONTENTS
+%-------------------------------
+
+\section{Algorithms for Segmentation}
+\subsection{Algorithm 1: OpenCV}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\linewidth]{opencv.png}
+    \caption{This flow chart represents the algorithm for finding the colonies in OpenCV. The first operation is converting the image into grayscale. This makes thresholding possible and finding the contours easier. Next we find the largest circle (the dish) and use it as a mask. This prevents pixels outside of the dish being detected as colonies. Next we use adaptive thresholding (inverted) to find the colonies in a binary image. From here we use OpenCV to detect the contours within this binary image. These contours are overlaid upon the original image in our final result.}
+\end{figure}
+
+
+\subsection{Algorithm 2: SAM Model}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\linewidth]{samseg.png}
+    \caption{This flow chart represents the algorithm for finding colonies with the SAM (Segment anything Model by Meta) model. The first operation is converting the image into grayscale. This makes thresholding possible and finding the contours easier. Next we find the largest circle (the dish) and use it as a mask. This tries to prevent the dish from being detected as a colony, but does not work very well. After masking the image, we plug it into the SAM model and observe the outputs.}
+\end{figure}
+
+\subsection{Algorithm Design Conclusions}
+
+The OpenCV model has many advantages over the SAM model. The OpenCV model can be tweaked easily while the SAM model is pre-trained, making it hard to change. Additionally, the OpenCV model is much quicker compared to the SAM model, taking only a couple seconds compared to up to a minute when the image is fed to the SAM model. However, as seen later, the SAM model has certain advantages over the OpenCV model, especially robustness against strange data and overlapping colonies.
+
+\subsection{Errors}
+
+The SAM model was difficult to constrain to a certain area of the image, so even though I masked the image, I still got colonies counted in the corner. Both models also detected peeling of the solution on the plate as colonies, when they aren't actually colonies.
+
+\section{Quantity}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\linewidth]{quantity.png}
+    \caption{This bar graph shows the difference of quantity of colonies detected by the different algorithms for each image. The OpenCV method is shown in blue, the SAM model is shown in orange, and the ground truth is shown in green.}
+\end{figure}
+
+\subsection{Quantity Conclusions}
+
+This figure allows us to see that the SAM model often overestimates the number of colonies, while the OpenCV model is fairly accurate. The only major difference for the OpenCV model is on image 4.
+
+\subsection{Quantity Errors}
+
+As mentioned earlier, the SAM model detects the edges of the images often, which could be the cause of over-counting. Additionally, the ground truth did not take into account possible colonies that are inside each other, which happened in a couple of the images.
+
+%------------------------------------------------
+
+\section{Quality}
+
+We will gauge quality by the distribution of the areas of the colonies.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\linewidth]{quality.png}
+    \caption{This figure shows the difference in distributions of colony areas between the different segmentation models and the ground truth. The OpenCV model is shown in blue, the SAM model is shown in orange, and the ground truth is shown in green. }
+\end{figure}
+
+\subsection{Quality Conclusions}
+This figure allows us to see that the SAM model often overestimates the sizes of the colonies, with many high area outliers, while the OpenCV model seems to not detect the largest of colonies, failing to see the extremely large outliers. Both models seem fairly ok with their area distributions, but neither of them are particularly good.
+
+\subsection{Quality Errors}
+
+As mentioned before, the SAM model incorrectly detects the corners of the image as colonies, which may be the cause of the large outliers in the data. Additionally, the smaller colonies in image 4 might be from colonies inside larger colonies in image 4, which isn't represented in the ground truth (as mentioned before). The OpenCV model also underestimates the size of many colonies. This is probably because the algorithm breaks up many of the larger colonies into smaller ones because the adaptive thresholding does not work well on large patches of colonies.
+
+\section{Background Comparison}
+
+
+
+\end{document}

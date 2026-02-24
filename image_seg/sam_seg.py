@@ -28,7 +28,7 @@ mask_generator = SamAutomaticMaskGenerator(
 )
 
 # 3. Smart Pre-processing (The "Secret Sauce")
-image = cv2.imread('images/backlit/img1.jpg')
+image = cv2.imread('images/white_bg/img3.jpg')
 
 # Resize if the image is massive (e.g., > 2000px wide) to speed up inference
 # SAM works best around 1024-1500px
