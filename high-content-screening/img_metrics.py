@@ -30,7 +30,7 @@ def count_255s(image_path, threshold=255):
 
     return num_overexposed
 
-def pixel_histogram(image_path, bins=10):
+def pixel_histogram(image_path, bins=30):
     """
     Calculates the pixel value histogram for an image using variable buckets.
 
@@ -58,4 +58,4 @@ def pixel_histogram(image_path, bins=10):
     # .ravel() flattens the 2D image matrix into a 1D list of pixels
     hist, bin_edges = np.histogram(gray_img.ravel(), bins=bins, range=(0, 256))
         
-    return hist, bin_edges
+    return hist.ravel()

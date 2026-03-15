@@ -64,6 +64,7 @@ def train_group():
         y.append(group_val)
         
     clf = RandomForestClassifier(random_state=42)
+
     clf.fit(X, y)
     
     with open(os.path.join(MODELS_DIR, 'group_model.pkl'), 'wb') as f:
@@ -283,6 +284,8 @@ def get_treatment_error_rate(test_dir="data/test"):
     print(error_dict)
     return errors / total if total > 0 else 0.0
 
+print(get_group_error_rate())
+print(get_mag_error_rate())
 print(get_treatment_error_rate())
 
 # print(predict_group("data/test/G7_20x_D3_F1_T4_TRANS.jpg"))
