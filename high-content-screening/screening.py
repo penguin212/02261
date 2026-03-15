@@ -321,4 +321,6 @@ def get_confusion_matrix(target_type, test_dir="data/test"):
     print(clf.classes_)
     return confusion_matrix(y_true, y_pred, labels=clf.classes_)
 
-print(get_confusion_matrix('mag'))
+
+print(get_group_error_rate())
+# print(get_confusion_matrix('mag'))

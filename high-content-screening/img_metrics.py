@@ -30,7 +30,7 @@ def count_255s(image_path, threshold=255):
 
     return num_overexposed
 
-def pixel_histogram(image_path, bins=30):
+def pixel_histogram(image_path, bins=170):
     """
     Calculates the pixel value histogram for an image using variable buckets.
 
