@@ -16,6 +16,11 @@ def extract_features(img):
     avg_area, count = avg_cell_area(img) 
     return [over_exp, avg_area, count] + list(hist)
 
+def extract_short_features(img):
+    over_exp = count_255s(img)
+    hist = pixel_histogram(img)
+    return [over_exp] + list(hist)
+
 blacklist = ["G6_20x_B6_F4_T0_TRANS.jpg", "G6_20x_F5_F1_T4_TRANSjpg.jpg"]
 
 cull_rate = .5
@@ -55,7 +60,7 @@ def train_group():
         img_path = os.path.join(TRAIN_DIR, file)
         other_img_path = getDAPI(img_path)
         
-        X.append(extract_features(img_path) + extract_features(other_img_path))
+        X.append(extract_short_features(img_path) + extract_short_features(other_img_path))
         y.append(group_val)
         
     clf = RandomForestClassifier(random_state=42)
@@ -77,7 +82,7 @@ def train_mag():
         img_path = os.path.join(TRAIN_DIR, file)
         other_img_path = getDAPI(img_path)
         
-        X.append(extract_features(img_path) + extract_features(other_img_path))
+        X.append(extract_short_features(img_path) + extract_short_features(other_img_path))
         y.append(mag_val)
         
     clf = RandomForestClassifier(random_state=42)
@@ -126,7 +131,7 @@ def predict_group(img_path):
     with open(model_path, 'rb') as f:
         clf = pickle.load(f)
         
-    features = extract_features(img_path) + extract_features(dapi_path)
+    features = extract_short_features(img_path) + extract_short_features(dapi_path)
     prediction = clf.predict([features])
     return prediction
 
@@ -140,7 +145,7 @@ def predict_mag(img_path):
     with open(model_path, 'rb') as f:
         clf = pickle.load(f)
         
-    features = extract_features(img_path) + extract_features(dapi_path)
+    features = extract_short_features(img_path) + extract_short_features(dapi_path)
     prediction = clf.predict([features])
     return prediction
 
@@ -178,7 +183,7 @@ def get_group_error_rate(test_dir="data/test"):
         img_path = os.path.join(test_dir, file)
         
         # Combine features exactly as done in training
-        features = extract_features(img_path) + extract_features(getDAPI(img_path))
+        features = extract_short_features(img_path) + extract_short_features(getDAPI(img_path))
         
         # Predict and check against ground truth
         predicted_group = clf.predict([features])[0]
@@ -218,7 +223,7 @@ def get_mag_error_rate(test_dir="data/test"):
         img_path = os.path.join(test_dir, file)
         
         # Combine features exactly as done in training
-        features = extract_features(img_path) + extract_features(getDAPI(img_path))
+        features = extract_short_features(img_path) + extract_short_features(getDAPI(img_path))
         
         # Predict and check against ground truth
         predicted_mag = clf.predict([features])[0]
