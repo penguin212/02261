@@ -5,6 +5,7 @@ from sklearn.ensemble import RandomForestClassifier
 from cell_metrics import avg_cell_area
 from tqdm import tqdm
 import numpy as np
+from sklearn.metrics import confusion_matrix
 
 # --- Conceptual Imports ---
 # Replace these with your actual imports from your other files
@@ -283,6 +284,38 @@ def get_treatment_error_rate(test_dir="data/test"):
     print(error_dict)
     return errors / total if total > 0 else 0.0
 
-print(get_treatment_error_rate())
+# print(get_treatment_error_rate())
 
-# print(predict_group("data/test/G7_20x_D3_F1_T4_TRANS.jpg"))
+
+def get_feature_importances(target_type):
+    """target_type must be 'group', 'mag', or 'treatment'"""
+    with open(os.path.join(MODELS_DIR, f'{target_type}_model.pkl'), 'rb') as f:
+        return pickle.load(f).feature_importances_
+
+def get_confusion_matrix(target_type, test_dir="data/test"):
+    """target_type must be 'group', 'mag', or 'treatment'"""
+    with open(os.path.join(MODELS_DIR, f'{target_type}_model.pkl'), 'rb') as f:
+        clf = pickle.load(f)
+        
+    y_true, y_pred = [], []
+    for file in tqdm(os.listdir(test_dir), desc=f"Eval {target_type}"):
+        if file in blacklist or "TRANS" not in file: continue
+        if target_type == 'treatment' and np.random.rand() < cull_rate: continue
+            
+        labels = _parse_labels(file)
+        # Map target_type to the correct index in _parse_labels (0: group, 1: mag, 2: treatment)
+        true_val = labels[0] if target_type == 'group' else labels[1] if target_type == 'mag' else labels[2]
+        
+        img_path = os.path.join(test_dir, file)
+        # Use full features for treatment, short features for group/mag
+        feat_fn = extract_features if target_type == 'treatment' else extract_short_features
+        features = feat_fn(img_path) + feat_fn(getDAPI(img_path))
+        
+        y_true.append(true_val)
+        y_pred.append(clf.predict([features])[0])
+        
+    # Return the matrix, ensuring rows/cols align with the model's known classes
+    print(clf.classes_)
+    return confusion_matrix(y_true, y_pred, labels=clf.classes_)
+
+print(get_confusion_matrix('mag'))
