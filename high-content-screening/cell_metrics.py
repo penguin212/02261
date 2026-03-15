@@ -5,13 +5,14 @@ MIN_AREA = 200 # Minimum area of colony contour
 
 def avg_cell_area(img_path):
     """
-    Calculates the number of overexposed pixels in an image.
+    Calculates the average cell area and the number of cells detected in one function call
 
     Args:
         img_path (str): The path to the input image.
 
-    Returns:
+    Returns: (float, int)
         float: average pixel count for each cell found in image
+        int: number of cells detected
     """
     # 1. Load the image
     image = cv2.imread(img_path)
@@ -82,11 +83,10 @@ def avg_cell_area(img_path):
         
     #print(f"Average Colony Area: {average_area} pixels.")
 
-    #Uncomment to get more data :)
-    return average_area#, csv_data, output
+    return average_area, valid_colonies
 
-def count_cells(img_path):
-    """
+"""def count_cells(img_path):
+
     Calculates the number of overexposed pixels in an image.
 
     Args:
@@ -94,7 +94,7 @@ def count_cells(img_path):
 
     Returns:
         int: number of cells found in the image
-    """
+
     # 1. Load the image
     image = cv2.imread(img_path)
     if image is None:
@@ -130,7 +130,7 @@ def count_cells(img_path):
 
     #print(f"Detected {total_count} valid cells (Area >= {MIN_AREA}).")
 
-    return total_count
+    return total_count"""
     
 #print(avg_cell_area("data/train/G3_10x_A3_F4_T0_TRANS.jpg"))
 #print(count_cells("data/train/G3_10x_A3_F4_T0_TRANS.jpg"))
