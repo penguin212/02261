@@ -1,0 +1,76 @@
+\documentclass[a4paper]{article} 
+\input{latex/head}
+\begin{document}
+
+%-------------------------------
+%	TITLE SECTION
+%-------------------------------
+
+\fancyhead[C]{}
+\hrule \medskip % Upper rule
+\begin{minipage}{0.295\textwidth} 
+\raggedright
+\footnotesize
+Dylan Huber 
+\end{minipage}
+\begin{minipage}{0.4\textwidth} 
+\centering 
+\large 
+Microbiome Analysis Lab\\ 
+\normalsize 
+02-261\\ 
+\end{minipage}
+\begin{minipage}{0.295\textwidth} 
+\raggedleft
+\today\hfill\\
+\end{minipage}
+\medskip\hrule 
+\bigskip
+
+%-------------------------------
+%	CONTENTS
+%-------------------------------
+
+\section*{Task 4: Agreement Curve for K-values}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\linewidth]{combined.png}
+    \caption{Agreement with local alignment with different length kmers. The orange line is with 10\% mutation on the query set (simulating Oxford Nanopore). The green line is with 1\% mutation on the query set (simulating Illumina).}
+\end{figure}
+
+Interestingly, the agreement with local alignment has a higher maximum for the mutated dataset. This is not too surprising, as the baseline that we are comparing this to is local aligning upon the mutated dataset as well. This might suggest that kmer matching is more robust against sequencing errors than local alignment.
+
+\section*{Task 8: Computation time benchmark}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\linewidth]{times.png}
+    \caption{The amount of time each method took to precompute with time plotted on a log scale. Note that the kmer method was under a second and the local alignment took about 5 minutes. All code was run with pypy3.}
+\end{figure}
+
+The timing results show that running local alignment to match sequences can be very costly. The kmer version, however, is very quick in comparison. This means that sometimes it may be useful to sacrifice the accuracy of the local alignment for the speed of comparing kmers.
+
+\newpage
+
+\section*{Task 9: Blast Results}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\linewidth]{blast_results.png}
+    \caption{The blast results given from blastn from the https://blast.ncbi.nlm.nih.gov/Blast.cgi website. Results are ordered by how well they are matched. The sequence run was the C12 sequence.}
+\end{figure}
+
+From the blastn results we can see that the C12 sequence matches Bacillus Cereus the best. This bacteria grows in various natural places including soil and food. This is a bit surprising given that it was gathered from the door to the library. Perhaps many people eat food before going to the library and this bacteria is from their hands. When we grew this on our plate we had a circular shape, which is consistent with what this tends to grow as.
+
+\newpage
+\section*{Task 10: Alignment results}
+
+I used local alignment with my database on the same C12 sequence and got a match for Streptococcus. This is different from the earlier result, perhaps because the database I have does not contain this bacteria in it. However, this is quite strange as these bacteria are quite different.
+
+
+
+
+%------------------------------------------------
+
+\end{document}

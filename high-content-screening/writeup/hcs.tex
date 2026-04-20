@@ -1,0 +1,260 @@
+\documentclass[a4paper]{article} 
+\input{latex/head}
+\begin{document}
+
+%-------------------------------
+%	TITLE SECTION
+%-------------------------------
+
+\fancyhead[C]{}
+\hrule \medskip % Upper rule
+\begin{minipage}{0.295\textwidth} 
+\raggedright
+\footnotesize
+Dylan Huber 
+\end{minipage}
+\begin{minipage}{0.4\textwidth} 
+\centering 
+\large 
+High Content Screening Lab Write-up\\ 
+\normalsize 
+02-261\\ 
+\end{minipage}
+\begin{minipage}{0.295\textwidth} 
+\raggedleft
+\today\hfill\\
+\end{minipage}
+\medskip\hrule 
+\bigskip
+
+%-------------------------------
+%	CONTENTS
+%-------------------------------
+
+\section{Feature Calculation Description}
+
+We used two feature types to train our models, image metric features and cell metric features:
+
+\subsection{Image Metric Features}
+
+The image metric features contained a count of pixels that were over-exposed, or had a value of 255 when converted to greyscale. We also included an array representing a histogram of pixel intensities. The number of bins was variable and testing on this parameter is discussed later. We chose these feature since we saw a large difference of pixel intensities between different groups pictures. This made us believe that a histogram of pixel intensities could predict accurately which group created the image.
+
+\subsection{Cell Metric Features}
+
+We had two cell metric features derived from an image segmentation of each photo. The image segmentation was conducted with the same code as the previous segmentation lab using my OpenCV code. See that write-up for more information. We took the count of cells found and the average size of these cells as features.
+
+\subsection{Conversion to 1D Array}
+
+To properly train a model on this, we need to convert these features into an array. We have 2 images per location that must be paired, so we take each image and turn it into an array of features and then append them together. This is then passed into the model when training or testing.\\
+
+Unfortunately, the image segmentation is not particularly fast, and on the models for finding the group or magnification level, accuracy was not improved with the cell metric features. Thus, we used the short feature list (only the image metric features) for the group and magnification level models and then used all features for the treatment model.
+
+\newpage
+\section{Feature Importance}
+
+\subsection{Group Model}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\linewidth]{Figure_1.png}
+    \caption{This is the feature importance matrix for the group model. This is using the short list of features with 10 bins for the histogram. Index 0 is the number of pixels with a value 255 in the TRANS photos. Indices 1-10 represent the histogram of pixel intensities for the TRANS photo. Index 11 is the number of pixels with a value 255 in the DAPI photos. Indices 12-21 represent the histogram of pixel intensities for the DAPI photo.}
+\end{figure}
+
+From this figure we can see that the TRANS image is significantly more important than the DAPI image, with only two of the DAPI features even being used. Note that this is with 10 bins for legibility, maximum performance is achieved with 256 bins. This histogram is quite similar, with the DAPI features not being used and the usage of the histogram being about uniform, however it would not be feasible to visualize.
+
+\subsection{Magnification Model}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\linewidth]{Figure_2.png}
+    \caption{This is the feature importance matrix for the magnification model. This is using the short list of features with 10 bins for the histogram. Index 0 is the number of pixels with a value 255 in the TRANS photos. Indices 1-10 represent the histogram of pixel intensities for the TRANS photo. Index 11 is the number of pixels with a value 255 in the DAPI photos. Indices 12-21 represent the histogram of pixel intensities for the DAPI photo.}
+\end{figure}
+
+From this figure it is clear to see that there is a pretty similar distribution of importance for the magnification model, showing that the DAPI image is barely used for this model as well.
+
+\subsection{Treatment Model}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\linewidth]{Figure_3.png}
+    \caption{This is the feature importance matrix for the treatment model. This is using the long list of features for the group model with 10 bins for the histogram. Index 0 is the number of pixels with a value 255 in the TRANS photos. Index 1 is the average area of the detected cells. Index 2 is the count of detected cells. Indices 3-12 represent the histogram of pixel intensities for the TRANS photo. Index 13 is the number of pixels with a value 255 in the DAPI photos. Index 14 is the average area of the detected cells in the DAPI photo. Index 13 is the count of detected cells in the DAPI photo. Indices 15-25 represent the histogram of pixel intensities for the DAPI photo.}
+\end{figure}
+
+From this figure it is clear to see that once again the DAPI image is not used very much. Additionally, the area of the cells was used less than the count of the cells, which was the most important feature. Again, the smaller number of bins was used to make this more readable.
+
+\newpage
+
+\section{Confusion Matrices}
+
+\subsection{Group Model}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\linewidth]{Figure_4.png}
+    \caption{This is the confusion matrix for the group model. We can see the distribution of predicted labels to true labels. }
+\end{figure}
+
+This shows that the group model operates quite well, even without the data about the cells. This has very few incorrect predictions.
+
+\subsection{Magnification Model}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\linewidth]{Figure_5.png}
+    \caption{This is the confusion matrix for the magnification model. We can see the distribution of predicted labels to true labels.}
+\end{figure}
+
+This shows that the magnification model operates quite well, even without the data about the cells. This has very few incorrect predictions.
+
+\subsection{Treatment Model}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\linewidth]{Figure_6.png}
+    \caption{This is the confusion matrix for the treatment model. We can see the distribution of predicted labels to true labels.}
+\end{figure}
+
+This shows that the treatment model is a bit mediocre, and there really isn't a pattern for which treatments are getting confused with other treatments.
+
+\newpage
+
+\section{Results}
+
+\subsection{Group Model}
+
+As shown earlier, great success was achieved with the group model. Using the full histogram of pixel values we achieved an error rate of $6\%$.
+
+
+
+\begin{figure}[h!]
+    \centering
+    % First subfigure
+    \begin{subfigure}[t]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../data/test/G2_10x_A3_F2_T0_TRANS.jpg}
+        \caption{Image from group 2 that was misclassified as an image from group 9.}
+    \end{subfigure}
+    \hfill % Adds horizontal space between subfigures
+    % Second subfigure
+    \begin{subfigure}[t]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../data/test/G9_10X_A2_F5_T0_TRANS.jpg}
+        \caption{An image group 9 for reference}
+    \end{subfigure}
+    \caption{TRANS image comparison}
+    
+\end{figure}
+
+\begin{figure}[h!]
+    \centering
+    % First subfigure
+    \begin{subfigure}[t]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../data/test/G2_10x_A3_F2_T0_DAPI.jpg}
+        \caption{Image from group 2 that was misclassified as an image from group 9.}
+    \end{subfigure}
+    \hfill % Adds horizontal space between subfigures
+    % Second subfigure
+    \begin{subfigure}[t]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../data/test/G9_10X_A2_F5_T0_DAPI.jpg}
+        \caption{An image group 9 for reference}
+    \end{subfigure}
+    \caption{DAPI image comparison}
+    
+\end{figure}
+
+
+Above we can see an example of a misclassification for the group model. The left image was misclassified as an image from the right group. This makes sense because the images look quite similar.
+
+\subsection{Magnification Model}
+
+As shown earlier, we had a lot of success with the magnification model as well. Our final error rate is $4\%$, which is pretty good. As seen in the confusion matrix, the misclassifications were mostly 20x being classified as 10x. Below is one of these instances.
+
+\begin{figure}[H]
+    \centering
+    % First subfigure
+    \begin{subfigure}[t]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../data/test/G4_20x_C5_F3_T1_TRANS.jpg}
+        \caption{Image with 20x magnification that was classified as 10x.}
+    \end{subfigure}
+    \hfill % Adds horizontal space between subfigures
+    % Second subfigure
+    \begin{subfigure}[t]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../data/test/G9_10X_A2_F5_T0_TRANS.jpg}
+        \caption{An image with 10x magnification for reference.}
+    \end{subfigure}
+    \caption{TRANS image comparison}
+    
+\end{figure}
+\begin{figure}[H]
+    \centering
+    % First subfigure
+    \begin{subfigure}[t]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../data/test/G4_20x_C5_F3_T1_DAPI.jpg}
+        \caption{Image with 20x magnification that was classified as 10x.}
+    \end{subfigure}
+    \hfill % Adds horizontal space between subfigures
+    % Second subfigure
+    \begin{subfigure}[t]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../data/test/G9_10X_A2_F5_T0_DAPI.jpg}
+        \caption{An image with 10x magnification for reference.}
+    \end{subfigure}
+    \caption{DAPI image comparison}
+    
+\end{figure}
+
+Above we can see an example of misclassification. This somewhat makes sense because it is quite hard to tell the difference between these. For this classification task we used the short list because adding the segmentation results only slowed down training and did not improve the error rate. Additionally, the magnification levels were split by groups (each group only did one magnification level). This somewhat invalidates these results, as the model might just be mapping groups to magnification levels.
+
+\subsection{Treatment Model}
+
+As shown earlier, the treatment model did not work very well. We got a final error rate of $46\%$, which is not terrible, but also is not good either. Below is an example of a misclassification.
+
+
+\begin{figure}[H]
+    \centering
+    % First subfigure
+    \begin{subfigure}[t]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../data/test/G2_10x_C3_F1_T4_TRANS.jpg}
+        \caption{Image in treatment 4 classified as treatment 0.5.}
+    \end{subfigure}
+    \hfill % Adds horizontal space between subfigures
+    % Second subfigure
+    \begin{subfigure}[t]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../data/test/G2_10x_E3_F3_T5_TRANS.jpg}
+        \caption{An image with .5 treatment for reference.}
+    \end{subfigure}
+    \caption{TRANS image comparison}
+    
+\end{figure}
+\begin{figure}[H]
+    \centering
+    % First subfigure
+    \begin{subfigure}[t]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../data/test/G2_10x_C3_F1_T4_DAPI.jpg}
+        \caption{Image in treatment 4 classified as treatment 0.5.}
+    \end{subfigure}
+    \hfill % Adds horizontal space between subfigures
+    % Second subfigure
+    \begin{subfigure}[t]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../data/test/G2_10x_E3_F3_T5_DAPI.jpg}
+        \caption{An image with .5 treatment for reference.}
+    \end{subfigure}
+    \caption{DAPI image comparison}
+    
+\end{figure}
+
+This one is easier to pick out the differences. I suspect the reason for the failure to differentiate is due to the image segmentation not working very well. One way to improve this would be to make this work better and take photos in a more consistent manner to ensure that the data is clean. However, I would lean towards better computation for better accuracy here, since especially the DAPI images should be getting used more.
+
+
+
+
+\end{document}

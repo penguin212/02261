@@ -2,3 +2,4 @@
 *.DS_Store
 /cell_images/*
 */data/*
+*/images/*

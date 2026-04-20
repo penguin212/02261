@@ -6,7 +6,8 @@ from cell_metrics import avg_cell_area
 from tqdm import tqdm
 import numpy as np
 from sklearn.metrics import confusion_matrix
-
+from sklearn.metrics import ConfusionMatrixDisplay
+import matplotlib.pyplot as plt
 # --- Conceptual Imports ---
 # Replace these with your actual imports from your other files
 # e.g., from my_features import get_treatment_features, etc.
@@ -15,7 +16,7 @@ def extract_features(img):
     over_exp = count_255s(img)
     hist = pixel_histogram(img)
     avg_area, count = avg_cell_area(img) 
-    return [over_exp, avg_area, count] + list(hist)
+    return [over_exp, avg_area, count]
 
 def extract_short_features(img):
     over_exp = count_255s(img)
@@ -24,7 +25,7 @@ def extract_short_features(img):
 
 blacklist = ["G6_20x_B6_F4_T0_TRANS.jpg", "G6_20x_F5_F1_T4_TRANSjpg.jpg"]
 
-cull_rate = .5
+cull_rate = 0.5
 
 
 # --- Directories ---
@@ -194,6 +195,7 @@ def get_group_error_rate(test_dir="data/test"):
         
         curr_right, curr_total = error_dict[true_group]
         if predicted_group != true_group:
+            print(file)
             errors += 1
         else:
             curr_right += 1
@@ -234,6 +236,7 @@ def get_mag_error_rate(test_dir="data/test"):
         
         curr_right, curr_total = error_dict[true_mag]
         if predicted_mag != true_mag:
+            print(file)
             errors += 1
         else:
             curr_right += 1
@@ -259,8 +262,8 @@ def get_treatment_error_rate(test_dir="data/test"):
         # Skip blacklisted files and DAPI images (since we process them in pairs)
         if file in blacklist or "TRANS" not in file:
             continue
-        if(np.random.rand() < cull_rate):
-            continue
+        # if(np.random.rand() < cull_rate):
+        #     continue
             
         _, _, true_treatment = _parse_labels(file)
         img_path = os.path.join(test_dir, file)
@@ -275,6 +278,7 @@ def get_treatment_error_rate(test_dir="data/test"):
         
         curr_right, curr_total = error_dict[true_treatment]
         if predicted_treatment != true_treatment:
+            print(file)
             errors += 1
         else:
             curr_right += 1
@@ -284,10 +288,6 @@ def get_treatment_error_rate(test_dir="data/test"):
     
     print(error_dict)
     return errors / total if total > 0 else 0.0
-
-print(get_group_error_rate())
-print(get_mag_error_rate())
-print(get_treatment_error_rate())
 
 
 def get_feature_importances(target_type):
@@ -322,5 +322,54 @@ def get_confusion_matrix(target_type, test_dir="data/test"):
     return confusion_matrix(y_true, y_pred, labels=clf.classes_)
 
 
-print(get_group_error_rate())
-# print(get_confusion_matrix('mag'))
+# print(get_mag_error_rate())
+
+
+
+def plot_feature_importances(importances, title="Feature Importances (Magnification Model)"):
+    plt.figure(figsize=(10, 5))
+    
+    # Create an array of x-axis indices (0, 1, 2, ... up to the number of features)
+    indices = np.arange(len(importances))
+    
+    # Create the bar chart
+    plt.bar(indices, importances, color='#4C72B0', edgecolor='black')
+    
+    plt.xlabel('Feature Index')
+    plt.ylabel('Importance Score')
+    plt.title(title)
+    
+    # Add a subtle grid for easier reading
+    plt.grid(axis='y', linestyle='--', alpha=0.7)
+    
+    plt.tight_layout()
+    plt.show()
+
+
+def plot_confusion_matrix(cm, target_type):
+    """Plots a confusion matrix using matplotlib and sklearn."""
+    
+    # Load the model quickly just to grab the exact class labels for the axes
+    with open(os.path.join(MODELS_DIR, f'{target_type}_model.pkl'), 'rb') as f:
+        classes = pickle.load(f).classes_
+        
+    fig, ax = plt.subplots(figsize=(8, 6))
+    
+    # ConfusionMatrixDisplay does the heavy lifting for layout and text
+    disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=classes)
+    
+    # cmap=plt.cm.Blues gives it a nice heatmap look
+    # values_format='d' forces it to print normal integers instead of scientific notation
+    disp.plot(cmap=plt.cm.Blues, ax=ax, values_format='d')
+    
+    plt.title(f"Confusion Matrix: {target_type.capitalize()}")
+    
+    # Matplotlib sometimes draws gridlines on images by default, which looks messy here
+    plt.grid(False) 
+    
+    plt.tight_layout()
+    plt.show()
+
+# plot_confusion_matrix(get_confusion_matrix("treatment"), "treatment")
+print(get_treatment_error_rate())
+# print(predict_group("data/test/G2_10x_C3_F1_T4_TRANS.jpg"))
